@@ -1,0 +1,9 @@
+{
+  "name": "boutique-manager-vercel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Boutique Manager adapted for Vercel serverless deployment with Postgres (Neon) storage.",
+  "dependencies": {
+    "@vercel/postgres": "^0.10.0"
+  }
+}

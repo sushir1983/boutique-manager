@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boutique Manager — Bridal Wear</title>
+<style>
+:root{
+  --maroon:#6b1d2e;
+  --maroon-dark:#4a1320;
+  --rose:#c97b8a;
+  --blush:#fbeef0;
+  --gold:#c9a14a;
+  --gold-light:#f3e6c8;
+  --ink:#2b1f22;
+  --muted:#8a7378;
+  --line:#e9d8dc;
+  --bg:#fdf8f6;
+  --white:#fff;
+  --ok:#3f7a4d;
+  --warn:#b8862c;
+  --danger:#a23b3b;
+  --shadow:0 2px 10px rgba(107,29,46,0.08);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+h1,h2,h3{font-family:Georgia,'Times New Roman',serif;color:var(--maroon-dark);margin:0;}
+.app{display:flex;min-height:100vh;}
+
+/* Sidebar */
+.sidebar{width:230px;background:linear-gradient(180deg,var(--maroon-dark),var(--maroon));color:#fff;display:flex;flex-direction:column;flex-shrink:0;}
+.brand{padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.15);}
+.brand h1{color:#fff;font-size:20px;letter-spacing:0.5px;}
+.brand span{color:var(--gold-light);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;}
+.nav{flex:1;padding:14px 10px;}
+.nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;color:#f3e3e6;padding:11px 14px;border-radius:8px;font-size:14px;cursor:pointer;margin-bottom:4px;transition:background .15s;}
+.nav button:hover{background:rgba(255,255,255,0.08);}
+.nav button.active{background:var(--gold);color:var(--maroon-dark);font-weight:600;}
+.nav .icon{font-size:16px;width:18px;text-align:center;}
+.sidebar-footer{padding:14px 20px;font-size:11px;color:rgba(255,255,255,0.5);border-top:1px solid rgba(255,255,255,0.12);}
+
+/* Main */
+.main{flex:1;padding:28px 34px;overflow-x:hidden;}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+.topbar h2{font-size:24px;}
+.topbar .sub{color:var(--muted);font-size:13px;margin-top:3px;}
+.btn{background:var(--maroon);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:500;}
+.btn:hover{background:var(--maroon-dark);}
+.btn.gold{background:var(--gold);color:var(--maroon-dark);}
+.btn.gold:hover{background:#b88f3c;}
+.btn.ghost{background:transparent;color:var(--maroon);border:1px solid var(--maroon);}
+.btn.small{padding:5px 10px;font-size:12px;border-radius:6px;}
+.btn.danger{background:var(--danger);}
+.btn.danger:hover{background:#832c2c;}
+
+/* Cards / metrics */
+.grid{display:grid;gap:16px;}
+.grid.cols-4{grid-template-columns:repeat(4,1fr);}
+.grid.cols-3{grid-template-columns:repeat(3,1fr);}
+.grid.cols-2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:1100px){.grid.cols-4{grid-template-columns:repeat(2,1fr);} .grid.cols-3{grid-template-columns:repeat(2,1fr);}}
+
+.card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow);}
+.metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+.metric .value{font-size:28px;font-weight:700;color:var(--maroon-dark);margin-top:6px;}
+.metric .delta{font-size:12px;margin-top:4px;color:var(--ok);}
+
+.panel{background:var(--white);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;}
+.panel-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.panel-head h3{font-size:16px;}
+.panel-body{padding:16px 18px;}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th{text-align:left;padding:10px 12px;background:var(--blush);color:var(--maroon-dark);font-weight:600;border-bottom:1px solid var(--line);white-space:nowrap;}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tr:hover td{background:#fff8f6;}
+.empty-row td{text-align:center;color:var(--muted);padding:30px;}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;}
+.badge.gray{background:#eee;color:#666;}
+.badge.blue{background:#e3edfb;color:#2a5fa8;}
+.badge.gold{background:var(--gold-light);color:#8a6a1d;}
+.badge.green{background:#e3f3e6;color:var(--ok);}
+.badge.red{background:#fbe4e4;color:var(--danger);}
+.badge.purple{background:#ece3f7;color:#6b3fa0;}
+
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+input,select,textarea{border:1px solid var(--line);border-radius:7px;padding:9px 11px;font-size:13.5px;font-family:inherit;background:#fff;color:var(--ink);}
+input:focus,select:focus,textarea:focus{outline:1.5px solid var(--rose);}
+.search{min-width:220px;}
+.filter-pill{padding:7px 14px;border-radius:20px;border:1px solid var(--line);background:#fff;font-size:12.5px;cursor:pointer;color:var(--muted);}
+.filter-pill.active{background:var(--maroon);color:#fff;border-color:var(--maroon);}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(43,31,34,0.45);display:none;align-items:center;justify-content:center;z-index:100;}
+.overlay.show{display:flex;}
+.modal{background:#fff;border-radius:14px;max-width:560px;width:92%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.25);}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.modal-head h3{font-size:17px;}
+.modal-close{cursor:pointer;font-size:20px;color:var(--muted);background:none;border:none;}
+.modal-body{padding:20px 22px;}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block;font-size:12.5px;font-weight:600;color:var(--maroon-dark);margin-bottom:5px;}
+.form-row input,.form-row select,.form-row textarea{width:100%;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.modal-foot{padding:16px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;}
+
+.meas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin:16px 0 8px;font-weight:700;}
+
+.actions-cell{display:flex;gap:6px;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--maroon-dark);color:#fff;padding:12px 20px;border-radius:8px;font-size:13.5px;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:200;opacity:0;transform:translateY(10px);transition:all .25s;}
+.toast.show{opacity:1;transform:translateY(0);}
+.muted{color:var(--muted);}
+.row-flex{display:flex;justify-content:space-between;align-items:center;}
+.tag-strip{display:flex;gap:6px;flex-wrap:wrap;}
+.sync{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.sync .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);}
+.sync.saving .dot{background:var(--warn);}
+.sync.error .dot{background:var(--danger);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">
+      <h1>✦ Boutique Manager</h1>
+      <span>Bridal Wear Studio</span>
+    </div>
+    <div class="nav" id="nav">
+      <button data-tab="dashboard" class="active"><span class="icon">🏠</span> Dashboard</button>
+      <button data-tab="customers"><span class="icon">👤</span> Customers</button>
+      <button data-tab="orders"><span class="icon">✂️</span> Orders</button>
+      <button data-tab="inventory"><span class="icon">👗</span> Inventory</button>
+      <button data-tab="rentals"><span class="icon">📅</span> Rentals</button>
+      <button data-tab="sales"><span class="icon">🧾</span> Sales & Billing</button>
+    </div>
+    <div class="sidebar-footer">Data is stored on the server and shared by everyone using this app.<br>Use Export regularly to back up.</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="pageTitle">Dashboard</h2>
+        <div class="sub" id="pageSub">Overview of your boutique</div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:center;">
+        <div class="sync" id="syncStatus"><span class="dot"></span><span id="syncLabel">Synced</span></div>
+        <button class="btn ghost small" onclick="exportData()">Export backup</button>
+        <button class="btn ghost small" onclick="document.getElementById('importFile').click()">Import backup</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Title</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" id="modalSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== DATA LAYER (server-backed) ===================== */
+function uid(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function defaultDB(){
+  return { customers:[], orders:[], inventory:[], rentals:[], sales:[] };
+}
+
+let DB = defaultDB();
+let dbVersion = 0;
+
+function setSyncStatus(state, label){
+  const el = document.getElementById('syncStatus');
+  el.className = 'sync' + (state ? ' '+state : '');
+  document.getElementById('syncLabel').textContent = label;
+}
+
+async function loadDB(){
+  setSyncStatus('saving','Loading...');
+  try{
+    const res = await fetch('/api/data');
+    if(!res.ok) throw new Error('Failed to load');
+    const json = await res.json();
+    dbVersion = json.version || 0;
+    setSyncStatus('', 'Synced');
+    return Object.assign(defaultDB(), json.db);
+  }catch(e){
+    console.error(e);
+    setSyncStatus('error','Offline — using blank data');
+    return defaultDB();
+  }
+}
+
+let saveInFlight = null;
+function saveDB(){
+  setSyncStatus('saving','Saving...');
+  const payload = JSON.stringify({ db: DB, version: dbVersion });
+  saveInFlight = fetch('/api/data', {
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: payload
+  }).then(async res=>{
+    if(res.status === 409){
+      const data = await res.json();
+      DB = Object.assign(defaultDB(), data.db);
+      dbVersion = data.version;
+      setSyncStatus('error','Updated elsewhere — refreshed');
+      toast('Data was changed by someone else — refreshed with the latest. Please redo your last change if it\'s missing.');
+      render();
+      return;
+    }
+    if(!res.ok) throw new Error('Save failed');
+    const data = await res.json();
+    dbVersion = data.version;
+    setSyncStatus('', 'Synced');
+  }).catch(e=>{
+    console.error(e);
+    setSyncStatus('error','Save failed — check connection');
+    toast('Could not save — check your connection and try again.');
+  });
+  return saveInFlight;
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(DB,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'boutique-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Backup exported');
+}
+
+function importData(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const parsed = JSON.parse(e.target.result);
+      DB = Object.assign(defaultDB(), parsed);
+      saveDB();
+      toast('Backup imported');
+      render();
+    }catch(err){ alert('Invalid backup file'); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+function fmtMoney(n){
+  n = Number(n)||0;
+  return '₹' + n.toLocaleString('en-IN', {maximumFractionDigits:0});
+}
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+}
+function daysBetween(a,b){
+  const A = new Date(a), B = new Date(b);
+  return Math.round((B-A)/(1000*60*60*24));
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+/* ===================== NAVIGATION ===================== */
+let currentTab = 'dashboard';
+const titles = {
+  dashboard:['Dashboard','Overview of your boutique'],
+  customers:['Customers','Manage customer profiles & measurements'],
+  orders:['Orders','Stitching, tailoring & customization jobs'],
+  inventory:['Inventory','Resale & rental stock'],
+  rentals:['Rentals','Bookings, due dates & returns'],
+  sales:['Sales & Billing','Transactions and invoices']
+};
+
+document.getElementById('nav').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-tab]');
+  if(!btn) return;
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTab = btn.dataset.tab;
+  document.getElementById('pageTitle').textContent = titles[currentTab][0];
+  document.getElementById('pageSub').textContent = titles[currentTab][1];
+  render();
+});
+
+function render(){
+  const c = document.getElementById('content');
+  if(currentTab==='dashboard') c.innerHTML = renderDashboard();
+  else if(currentTab==='customers') c.innerHTML = renderCustomers();
+  else if(currentTab==='orders') c.innerHTML = renderOrders();
+  else if(currentTab==='inventory') c.innerHTML = renderInventory();
+  else if(currentTab==='rentals') c.innerHTML = renderRentals();
+  else if(currentTab==='sales') c.innerHTML = renderSales();
+}
+
+/* ===================== MODAL HELPERS ===================== */
+function openModal(title, bodyHtml, onSave){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  const btn = document.getElementById('modalSaveBtn');
+  btn.onclick = onSave;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeModal(){
+  document.getElementById('overlay').classList.remove('show');
+}
+function val(id){ const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function numval(id){ const v = val(id); return v===''? 0 : Number(v); }
+
+/* ===================== CUSTOMERS ===================== */
+let custSearch = '';
+function renderCustomers(){
+  const list = DB.customers.filter(c => (c.name+c.phone).toLowerCase().includes(custSearch.toLowerCase()));
+  return `
+  <div class="toolbar">
+    <input class="search" placeholder="Search by name or phone..." value="${escapeAttr(custSearch)}" oninput="custSearch=this.value;render()">
+    <span style="flex:1"></span>
+    <button class="btn gold" onclick="openCustomerForm()">+ Add Customer</button>
+  </div>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Orders</th><th>Rentals</th><th>Notes</th><th></th></tr></thead>
+      <tbody>
+      ${list.length? list.map(c=>{
+        const orderCount = DB.orders.filter(o=>o.customerId===c.id).length;
+        const rentalCount = DB.rentals.filter(r=>r.customerId===c.id).length;
+        return `<tr>
+          <td><strong>${escapeHtml(c.name)}</strong></td>
+          <td>${escapeHtml(c.phone||'—')}</td>
+          <td>${escapeHtml(c.email||'—')}</td>
+          <td>${orderCount}</td>
+          <td>${rentalCount}</td>
+          <td class="muted">${escapeHtml((c.notes||'').slice(0,40))}</td>
+          <td class="actions-cell">
+            <button class="btn ghost small" onclick="openCustomerForm('${c.id}')">Edit</button>
+            <button class="btn danger small" onclick="deleteCustomer('${c.id}')">Delete</button>
+          </td>
+        </tr>`;
+      }).join('') : `<tr class="empty-row"><td colspan="7">No customers yet. Click "Add Customer" to get started.</td></tr>`}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function openCustomerForm(id){
+  const c = id ? DB.customers.find(x=>x.id===id) : {name:'',phone:'',email:'',address:'',notes:'',measurements:{}};
+  const m = c.measurements || {};
+  const measFields = ['bust','waist','hip','shoulder','sleeveLength','blouseLength','frontNeck','backNeck','armhole','inseam'];
+  openModal(id?'Edit Customer':'Add Customer', `
+    <div class="form-grid">
+      <div class="form-row"><label>Full Name *</label><input id="f_name" value="${escapeAttr(c.name)}"></div>
+      <div class="form-row"><label>Phone</label><input id="f_phone" value="${escapeAttr(c.phone)}"></div>
+      <div class="form-row"><label>Email</label><input id="f_email" value="${escapeAttr(c.email)}"></div>
+      <div class="form-row"><label>Address</label><input id="f_address" value="${escapeAttr(c.address)}"></div>
+    </div>
+    <div class="section-label">Measurements (inches)</div>
+    <div class="meas-grid">
+      ${measFields.map(f=>`<div class="form-row"><label>${labelize(f)}</label><input id="m_${f}" value="${escapeAttr(m[f]||'')}"></div>`).join('')}
+    </div>
+    <div class="form-row"><label>Notes / Preferences</label><textarea id="f_notes" rows="2">${escapeHtml(c.notes||'')}</textarea></div>
+  `, ()=>saveCustomer(id, measFields));
+}
+
+function labelize(s){ return s.replace(/([A-Z])/g,' $1').replace(/^./,m=>m.toUpperCase()); }
+
+function saveCustomer(id, measFields){
+  const name = val('f_name');
+  if(!name){ alert('Name is required'); return; }
+  const measurements = {};
+  measFields.forEach(f=> measurements[f] = val('m_'+f));
+  const data = {
+    name, phone: val('f_phone'), email: val('f_email'), address: val('f_address'),
+    notes: val('f_notes'), measurements
+  };
+  if(id){
+    Object.assign(DB.customers.find(x=>x.id===id), data);
+    toast('Customer updated');
+  }else{
+    DB.customers.push(Object.assign({id:uid('cust')}, data));
+    toast('Customer added');
+  }
+  saveDB(); closeModal(); render();
+}
+
+function deleteCustomer(id){
+  if(!confirm('Delete this customer? This will not delete their existing orders/rentals.')) return;
+  DB.customers = DB.customers.filter(c=>c.id!==id);
+  saveDB(); render();
+}
+
+function customerOptions(selectedId){
+  return DB.customers.map(c=>`<option value="${c.id}" ${c.id===selectedId?'selected':''}>${escapeHtml(c.name)}</option>`).join('');
+}
+
+/* ===================== ORDERS ===================== */
+let orderFilter = 'all';
+const orderStatuses = ['New','Measuring','Cutting','Stitching','Fitting','Ready','Delivered','Cancelled'];
+const orderTypes = ['Stitching','Tailoring/Alteration','Customization'];
+
+function renderOrders(){
+  let list = DB.orders.slice().sort((a,b)=> new Date(a.deadline||'2999-01-01') - new Date(b.deadline||'2999-01-01'));
+  if(orderFilter!=='all') list = list.filter(o=>o.status===orderFilter);
+  return `
+  <div class="toolbar">
+    <div class="tag-strip">
+      <span class="filter-pill ${orderFilter==='all'?'active':''}" onclick="orderFilter='all';render()">All (${DB.orders.length})</span>
+      ${orderStatuses.map(s=>`<span class="filter-pill ${orderFilter===s?'active':''}" onclick="orderFilter='${s}';render()">${s} (${DB.orders.filter(o=>o.status===s).length})</span>`).join('')}
+    </div>
+    <span style="flex:1"></span>
+    <button class="btn gold" onclick="openOrderForm()">+ New Order</button>
+  </div>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Customer</th><th>Type</th><th>Description</th><th>Deadline</th><th>Status</th><th>Price</th><th>Advance</th><th>Balance</th><th></th></tr></thead>
+      <tbody>
+      ${list.length? list.map(o=>{
+        const cust = DB.customers.find(c=>c.id===o.customerId);
+        const balance = (Number(o.price)||0) - (Number(o.advance)||0);
+        const overdue = o.deadline && o.status!=='Delivered' && o.status!=='Cancelled' && new Date(o.deadline) < new Date(todayStr());
+        return `<tr>
+          <td><strong>${cust?escapeHtml(cust.name):'<span class=\"muted\">Unknown</span>'}</strong></td>
+          <td>${escapeHtml(o.type)}</td>
+          <td class="muted">${escapeHtml((o.description||'').slice(0,40))}</td>
+          <td>${fmtDate(o.deadline)} ${overdue?'<span class="badge red">overdue</span>':''}</td>
+          <td>${statusBadge(o.status)}</td>
+          <td>${fmtMoney(o.price)}</td>
+          <td>${fmtMoney(o.advance)}</td>
+          <td>${fmtMoney(balance)}</td>
+          <td class="actions-cell">
+            <button class="btn ghost small" onclick="openOrderForm('${o.id}')">Edit</button>
+            <button class="btn danger small" onclick="deleteOrder('${o.id}')">Del</button>
+          </td>
+        </tr>`;
+      }).join('') : `<tr class="empty-row"><td colspan="9">No orders found.</td></tr>`}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function statusBadge(s){
+  const map = {New:'gray',Measuring:'blue',Cutting:'blue',Stitching:'gold',Fitting:'purple',Ready:'green',Delivered:'green',Cancelled:'red'};
+  return `<span class="badge ${map[s]||'gray'}">${s}</span>`;
+}
+
+function openOrderForm(id){
+  const o = id ? DB.orders.find(x=>x.id===id) : {customerId:'',type:'Stitching',description:'',deadline:'',status:'New',price:'',advance:''};
+  if(!DB.customers.length){ alert('Add a customer first before creating an order.'); return; }
+  openModal(id?'Edit Order':'New Order', `
+    <div class="form-grid">
+      <div class="form-row"><label>Customer *</label><select id="f_customerId">${customerOptions(o.customerId)}</select></div>
+      <div class="form-row"><label>Order Type</label><select id="f_type">${orderTypes.map(t=>`<option ${t===o.type?'selected':''}>${t}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-row"><label>Description (design, fabric, reference)</label><textarea id="f_description" rows="2">${escapeHtml(o.description||'')}</textarea></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Deadline</label><input type="date" id="f_deadline" value="${o.deadline||''}"></div>
+      <div class="form-row"><label>Status</label><select id="f_status">${orderStatuses.map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Total Price (₹)</label><input type="number" id="f_price" value="${o.price||''}"></div>
+      <div class="form-row"><label>Advance Paid (₹)</label><input type="number" id="f_advance" value="${o.advance||''}"></div>
+    </div>
+  `, ()=>saveOrder(id));
+}
+
+function saveOrder(id){
+  const customerId = val('f_customerId');
+  if(!customerId){ alert('Select a customer'); return; }
+  const data = {
+    customerId, type: val('f_type'), description: val('f_description'),
+    deadline: val('f_deadline'), status: val('f_status'),
+    price: numval('f_price'), advance: numval('f_advance')
+  };
+  if(id){ Object.assign(DB.orders.find(x=>x.id===id), data); toast('Order updated'); }
+  else{ DB.orders.push(Object.assign({id:uid('ord'), createdAt: todayStr()}, data)); toast('Order created'); }
+  saveDB(); closeModal(); render();
+}
+
+function deleteOrder(id){
+  if(!confirm('Delete this order?')) return;
+  DB.orders = DB.orders.filter(o=>o.id!==id);
+  saveDB(); render();
+}
+
+/* ===================== INVENTORY ===================== */
+let invFilter = 'all';
+const invCategories = ['Bridal Lehenga','Saree','Gown','Sherwani-style','Blouse','Dupatta','Accessory','Other'];
+const invModes = ['Resale','Rental','Resale & Rental'];
+
+function renderInventory(){
+  let list = DB.inventory.slice();
+  if(invFilter!=='all') list = list.filter(i=>i.mode===invFilter);
+  return `
+  <div class="toolbar">
+    <span class="filter-pill ${invFilter==='all'?'active':''}" onclick="invFilter='all';render()">All (${DB.inventory.length})</span>
+    ${invModes.map(m=>`<span class="filter-pill ${invFilter===m?'active':''}" onclick="invFilter='${m}';render()">${m} (${DB.inventory.filter(i=>i.mode===m).length})</span>`).join('')}
+    <span style="flex:1"></span>
+    <button class="btn gold" onclick="openInventoryForm()">+ Add Item</button>
+  </div>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Item</th><th>Category</th><th>Mode</th><th>Stock</th><th>Cost</th><th>Sale Price</th><th>Rental Rate/day</th><th></th></tr></thead>
+      <tbody>
+      ${list.length? list.map(i=>{
+        const low = Number(i.stock) <= Number(i.lowStockAt||1) && (i.mode==='Resale'||i.mode==='Resale & Rental');
+        return `<tr>
+          <td><strong>${escapeHtml(i.name)}</strong>${i.sku?`<div class="muted" style="font-size:11px">SKU: ${escapeHtml(i.sku)}</div>`:''}</td>
+          <td>${escapeHtml(i.category)}</td>
+          <td>${modeBadge(i.mode)}</td>
+          <td>${i.stock} ${low?'<span class="badge red">low</span>':''}</td>
+          <td>${fmtMoney(i.cost)}</td>
+          <td>${i.mode!=='Rental'?fmtMoney(i.salePrice):'—'}</td>
+          <td>${i.mode!=='Resale'?fmtMoney(i.rentalRate):'—'}</td>
+          <td class="actions-cell">
+            <button class="btn ghost small" onclick="openInventoryForm('${i.id}')">Edit</button>
+            <button class="btn danger small" onclick="deleteInventory('${i.id}')">Del</button>
+          </td>
+        </tr>`;
+      }).join('') : `<tr class="empty-row"><td colspan="8">No inventory items yet.</td></tr>`}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function modeBadge(m){
+  const map = {'Resale':'blue','Rental':'gold','Resale & Rental':'purple'};
+  return `<span class="badge ${map[m]||'gray'}">${m}</span>`;
+}
+
+function openInventoryForm(id){
+  const i = id ? DB.inventory.find(x=>x.id===id) : {name:'',sku:'',category:'Bridal Lehenga',mode:'Resale',stock:1,lowStockAt:1,cost:'',salePrice:'',rentalRate:'',deposit:''};
+  openModal(id?'Edit Item':'Add Inventory Item', `
+    <div class="form-grid">
+      <div class="form-row"><label>Item Name *</label><input id="f_name" value="${escapeAttr(i.name)}"></div>
+      <div class="form-row"><label>SKU / Code</label><input id="f_sku" value="${escapeAttr(i.sku)}"></div>
+      <div class="form-row"><label>Category</label><select id="f_category">${invCategories.map(c=>`<option ${c===i.category?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Mode</label><select id="f_mode" onchange="toggleInvFields()">${invModes.map(m=>`<option ${m===i.mode?'selected':''}>${m}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Stock Qty</label><input type="number" id="f_stock" value="${i.stock}"></div>
+      <div class="form-row"><label>Low Stock Alert At</label><input type="number" id="f_lowStockAt" value="${i.lowStockAt||1}"></div>
+      <div class="form-row"><label>Cost Price (₹)</label><input type="number" id="f_cost" value="${i.cost||''}"></div>
+      <div class="form-row" id="row_salePrice"><label>Sale Price (₹)</label><input type="number" id="f_salePrice" value="${i.salePrice||''}"></div>
+      <div class="form-row" id="row_rentalRate"><label>Rental Rate / day (₹)</label><input type="number" id="f_rentalRate" value="${i.rentalRate||''}"></div>
+      <div class="form-row" id="row_deposit"><label>Security Deposit (₹)</label><input type="number" id="f_deposit" value="${i.deposit||''}"></div>
+    </div>
+  `, ()=>saveInventory(id));
+  toggleInvFields();
+}
+
+function toggleInvFields(){
+  const mode = val('f_mode');
+  document.getElementById('row_salePrice').style.display = mode==='Rental' ? 'none':'block';
+  document.getElementById('row_rentalRate').style.display = mode==='Resale' ? 'none':'block';
+  document.getElementById('row_deposit').style.display = mode==='Resale' ? 'none':'block';
+}
+
+function saveInventory(id){
+  const name = val('f_name');
+  if(!name){ alert('Item name is required'); return; }
+  const data = {
+    name, sku: val('f_sku'), category: val('f_category'), mode: val('f_mode'),
+    stock: numval('f_stock'), lowStockAt: numval('f_lowStockAt'), cost: numval('f_cost'),
+    salePrice: numval('f_salePrice'), rentalRate: numval('f_rentalRate'), deposit: numval('f_deposit')
+  };
+  if(id){ Object.assign(DB.inventory.find(x=>x.id===id), data); toast('Item updated'); }
+  else{ DB.inventory.push(Object.assign({id:uid('inv')}, data)); toast('Item added'); }
+  saveDB(); closeModal(); render();
+}
+
+function deleteInventory(id){
+  if(!confirm('Delete this inventory item?')) return;
+  DB.inventory = DB.inventory.filter(i=>i.id!==id);
+  saveDB(); render();
+}
+
+function inventoryOptions(selectedId, rentalOnly){
+  let items = DB.inventory;
+  if(rentalOnly) items = items.filter(i=>i.mode!=='Resale');
+  return items.map(i=>`<option value="${i.id}" ${i.id===selectedId?'selected':''}>${escapeHtml(i.name)} (stock: ${i.stock})</option>`).join('');
+}
+
+/* ===================== RENTALS ===================== */
+let rentalFilter = 'all';
+const rentalStatuses = ['Booked','Out','Returned','Overdue','Cancelled'];
+
+function renderRentals(){
+  // auto-flag overdue
+  DB.rentals.forEach(r=>{
+    if(r.status==='Out' && r.dueDate && new Date(r.dueDate) < new Date(todayStr())) r.status = 'Overdue';
+  });
+  let list = DB.rentals.slice().sort((a,b)=> new Date(a.dueDate||'2999-01-01') - new Date(b.dueDate||'2999-01-01'));
+  if(rentalFilter!=='all') list = list.filter(r=>r.status===rentalFilter);
+  return `
+  <div class="toolbar">
+    <span class="filter-pill ${rentalFilter==='all'?'active':''}" onclick="rentalFilter='all';render()">All (${DB.rentals.length})</span>
+    ${rentalStatuses.map(s=>`<span class="filter-pill ${rentalFilter===s?'active':''}" onclick="rentalFilter='${s}';render()">${s} (${DB.rentals.filter(r=>r.status===s).length})</span>`).join('')}
+    <span style="flex:1"></span>
+    <button class="btn gold" onclick="openRentalForm()">+ New Rental</button>
+  </div>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Item</th><th>Customer</th><th>Out Date</th><th>Due Date</th><th>Status</th><th>Deposit</th><th>Rent Amount</th><th></th></tr></thead>
+      <tbody>
+      ${list.length? list.map(r=>{
+        const item = DB.inventory.find(i=>i.id===r.itemId);
+        const cust = DB.customers.find(c=>c.id===r.customerId);
+        return `<tr>
+          <td><strong>${item?escapeHtml(item.name):'<span class="muted">Unknown</span>'}</strong></td>
+          <td>${cust?escapeHtml(cust.name):'<span class="muted">Unknown</span>'}</td>
+          <td>${fmtDate(r.outDate)}</td>
+          <td>${fmtDate(r.dueDate)}</td>
+          <td>${rentalStatusBadge(r.status)}</td>
+          <td>${fmtMoney(r.deposit)}</td>
+          <td>${fmtMoney(r.rentAmount)}</td>
+          <td class="actions-cell">
+            ${r.status!=='Returned' && r.status!=='Cancelled' ? `<button class="btn ghost small" onclick="markReturned('${r.id}')">Mark Returned</button>`:''}
+            <button class="btn ghost small" onclick="openRentalForm('${r.id}')">Edit</button>
+            <button class="btn danger small" onclick="deleteRental('${r.id}')">Del</button>
+          </td>
+        </tr>`;
+      }).join('') : `<tr class="empty-row"><td colspan="8">No rentals recorded yet.</td></tr>`}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function rentalStatusBadge(s){
+  const map = {Booked:'blue',Out:'gold',Returned:'green',Overdue:'red',Cancelled:'gray'};
+  return `<span class="badge ${map[s]||'gray'}">${s}</span>`;
+}
+
+function openRentalForm(id){
+  if(!DB.customers.length){ alert('Add a customer first.'); return; }
+  if(!DB.inventory.filter(i=>i.mode!=='Resale').length){ alert('Add a rental-eligible inventory item first.'); return; }
+  const r = id ? DB.rentals.find(x=>x.id===id) : {itemId:'',customerId:'',outDate:todayStr(),dueDate:'',status:'Booked',deposit:'',rentAmount:''};
+  openModal(id?'Edit Rental':'New Rental', `
+    <div class="form-grid">
+      <div class="form-row"><label>Item *</label><select id="f_itemId">${inventoryOptions(r.itemId,true)}</select></div>
+      <div class="form-row"><label>Customer *</label><select id="f_customerId">${customerOptions(r.customerId)}</select></div>
+      <div class="form-row"><label>Out Date</label><input type="date" id="f_outDate" value="${r.outDate||''}"></div>
+      <div class="form-row"><label>Due Date *</label><input type="date" id="f_dueDate" value="${r.dueDate||''}"></div>
+      <div class="form-row"><label>Status</label><select id="f_status">${rentalStatuses.map(s=>`<option ${s===r.status?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Deposit (₹)</label><input type="number" id="f_deposit" value="${r.deposit||''}"></div>
+      <div class="form-row"><label>Rent Amount (₹)</label><input type="number" id="f_rentAmount" value="${r.rentAmount||''}"></div>
+      <div class="form-row"><label>Late Fee / day (₹)</label><input type="number" id="f_lateFee" value="${r.lateFee||''}"></div>
+    </div>
+  `, ()=>saveRental(id));
+}
+
+function saveRental(id){
+  const itemId = val('f_itemId'), customerId = val('f_customerId'), dueDate = val('f_dueDate');
+  if(!itemId || !customerId || !dueDate){ alert('Item, customer and due date are required'); return; }
+  const data = {
+    itemId, customerId, outDate: val('f_outDate'), dueDate, status: val('f_status'),
+    deposit: numval('f_deposit'), rentAmount: numval('f_rentAmount'), lateFee: numval('f_lateFee')
+  };
+  if(id){ Object.assign(DB.rentals.find(x=>x.id===id), data); toast('Rental updated'); }
+  else{ DB.rentals.push(Object.assign({id:uid('rent')}, data)); toast('Rental booked'); }
+  saveDB(); closeModal(); render();
+}
+
+function markReturned(id){
+  const r = DB.rentals.find(x=>x.id===id);
+  r.status = 'Returned';
+  r.returnDate = todayStr();
+  saveDB(); render();
+  toast('Marked as returned');
+}
+
+function deleteRental(id){
+  if(!confirm('Delete this rental record?')) return;
+  DB.rentals = DB.rentals.filter(r=>r.id!==id);
+  saveDB(); render();
+}
+
+/* ===================== SALES & BILLING ===================== */
+const saleTypes = ['Resale Item','Stitching/Tailoring Job','Rental Charge','Other'];
+const paymentStatuses = ['Paid','Partial','Unpaid'];
+
+function renderSales(){
+  let list = DB.sales.slice().sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
+  const totalRevenue = DB.sales.reduce((s,x)=>s+(Number(x.amountPaid)||0),0);
+  const totalDue = DB.sales.reduce((s,x)=>s+((Number(x.total)||0)-(Number(x.amountPaid)||0)),0);
+  return `
+  <div class="grid cols-3" style="margin-bottom:18px;">
+    <div class="card metric"><div class="label">Total Collected</div><div class="value">${fmtMoney(totalRevenue)}</div></div>
+    <div class="card metric"><div class="label">Outstanding</div><div class="value" style="color:var(--danger)">${fmtMoney(totalDue)}</div></div>
+    <div class="card metric"><div class="label">Total Transactions</div><div class="value">${DB.sales.length}</div></div>
+  </div>
+  <div class="toolbar">
+    <span style="flex:1"></span>
+    <button class="btn gold" onclick="openSaleForm()">+ New Sale / Invoice</button>
+  </div>
+  <div class="panel">
+    <table>
+      <thead><tr><th>Date</th><th>Customer</th><th>Type</th><th>Item/Description</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      ${list.length? list.map(s=>{
+        const cust = DB.customers.find(c=>c.id===s.customerId);
+        const balance = (Number(s.total)||0) - (Number(s.amountPaid)||0);
+        return `<tr>
+          <td>${fmtDate(s.date)}</td>
+          <td>${cust?escapeHtml(cust.name):'<span class="muted">Walk-in</span>'}</td>
+          <td>${escapeHtml(s.type)}</td>
+          <td class="muted">${escapeHtml((s.description||'').slice(0,30))}</td>
+          <td>${fmtMoney(s.total)}</td>
+          <td>${fmtMoney(s.amountPaid)}</td>
+          <td>${fmtMoney(balance)}</td>
+          <td>${paymentBadge(s.paymentStatus)}</td>
+          <td class="actions-cell">
+            <button class="btn ghost small" onclick="openSaleForm('${s.id}')">Edit</button>
+            <button class="btn danger small" onclick="deleteSale('${s.id}')">Del</button>
+          </td>
+        </tr>`;
+      }).join('') : `<tr class="empty-row"><td colspan="9">No sales recorded yet.</td></tr>`}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function paymentBadge(s){
+  const map = {Paid:'green',Partial:'gold',Unpaid:'red'};
+  return `<span class="badge ${map[s]||'gray'}">${s}</span>`;
+}
+
+function openSaleForm(id){
+  const s = id ? DB.sales.find(x=>x.id===id) : {customerId:'',type:'Resale Item',description:'',date:todayStr(),total:'',amountPaid:'',paymentStatus:'Unpaid'};
+  openModal(id?'Edit Sale':'New Sale / Invoice', `
+    <div class="form-grid">
+      <div class="form-row"><label>Customer</label><select id="f_customerId"><option value="">Walk-in / N/A</option>${customerOptions(s.customerId)}</select></div>
+      <div class="form-row"><label>Type</label><select id="f_type">${saleTypes.map(t=>`<option ${t===s.type?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Date</label><input type="date" id="f_date" value="${s.date||todayStr()}"></div>
+      <div class="form-row"><label>Payment Status</label><select id="f_paymentStatus">${paymentStatuses.map(p=>`<option ${p===s.paymentStatus?'selected':''}>${p}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Total Amount (₹)</label><input type="number" id="f_total" value="${s.total||''}"></div>
+      <div class="form-row"><label>Amount Paid (₹)</label><input type="number" id="f_amountPaid" value="${s.amountPaid||''}"></div>
+    </div>
+    <div class="form-row"><label>Description / Items</label><textarea id="f_description" rows="2">${escapeHtml(s.description||'')}</textarea></div>
+  `, ()=>saveSale(id));
+}
+
+function saveSale(id){
+  const data = {
+    customerId: val('f_customerId'), type: val('f_type'), date: val('f_date'),
+    paymentStatus: val('f_paymentStatus'), total: numval('f_total'), amountPaid: numval('f_amountPaid'),
+    description: val('f_description')
+  };
+  if(id){ Object.assign(DB.sales.find(x=>x.id===id), data); toast('Sale updated'); }
+  else{ DB.sales.push(Object.assign({id:uid('sale')}, data)); toast('Sale recorded'); }
+  saveDB(); closeModal(); render();
+}
+
+function deleteSale(id){
+  if(!confirm('Delete this sale record?')) return;
+  DB.sales = DB.sales.filter(s=>s.id!==id);
+  saveDB(); render();
+}
+
+/* ===================== DASHBOARD ===================== */
+function renderDashboard(){
+  DB.rentals.forEach(r=>{
+    if(r.status==='Out' && r.dueDate && new Date(r.dueDate) < new Date(todayStr())) r.status='Overdue';
+  });
+  const totalRevenue = DB.sales.reduce((s,x)=>s+(Number(x.amountPaid)||0),0);
+  const pendingOrders = DB.orders.filter(o=>!['Delivered','Cancelled'].includes(o.status)).length;
+  const overdueOrders = DB.orders.filter(o=>o.deadline && !['Delivered','Cancelled'].includes(o.status) && new Date(o.deadline)<new Date(todayStr())).length;
+  const activeRentals = DB.rentals.filter(r=>r.status==='Out').length;
+  const overdueRentals = DB.rentals.filter(r=>r.status==='Overdue').length;
+  const lowStock = DB.inventory.filter(i=> i.mode!=='Rental' && Number(i.stock) <= Number(i.lowStockAt||1));
+  const upcomingDeadlines = DB.orders.filter(o=>o.deadline && !['Delivered','Cancelled'].includes(o.status))
+    .sort((a,b)=>new Date(a.deadline)-new Date(b.deadline)).slice(0,5);
+  const dueRentals = DB.rentals.filter(r=>['Out','Overdue'].includes(r.status))
+    .sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate)).slice(0,5);
+
+  return `
+  <div class="grid cols-4" style="margin-bottom:20px;">
+    <div class="card metric"><div class="label">Total Collected</div><div class="value">${fmtMoney(totalRevenue)}</div></div>
+    <div class="card metric"><div class="label">Pending Orders</div><div class="value">${pendingOrders}</div>${overdueOrders?`<div class="delta" style="color:var(--danger)">${overdueOrders} overdue</div>`:''}</div>
+    <div class="card metric"><div class="label">Active Rentals</div><div class="value">${activeRentals}</div>${overdueRentals?`<div class="delta" style="color:var(--danger)">${overdueRentals} overdue</div>`:''}</div>
+    <div class="card metric"><div class="label">Customers</div><div class="value">${DB.customers.length}</div></div>
+  </div>
+  <div class="grid cols-2">
+    <div class="panel">
+      <div class="panel-head"><h3>Upcoming Order Deadlines</h3></div>
+      <div class="panel-body">
+        ${upcomingDeadlines.length? upcomingDeadlines.map(o=>{
+          const cust = DB.customers.find(c=>c.id===o.customerId);
+          return `<div class="row-flex" style="padding:8px 0;border-bottom:1px solid var(--line)">
+            <div><strong>${cust?escapeHtml(cust.name):'Unknown'}</strong><div class="muted" style="font-size:12px">${escapeHtml(o.type)}</div></div>
+            <div>${fmtDate(o.deadline)} ${statusBadge(o.status)}</div>
+          </div>`;
+        }).join('') : '<div class="muted">No upcoming deadlines.</div>'}
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Rentals Due Back</h3></div>
+      <div class="panel-body">
+        ${dueRentals.length? dueRentals.map(r=>{
+          const item = DB.inventory.find(i=>i.id===r.itemId);
+          const cust = DB.customers.find(c=>c.id===r.customerId);
+          return `<div class="row-flex" style="padding:8px 0;border-bottom:1px solid var(--line)">
+            <div><strong>${item?escapeHtml(item.name):'Unknown'}</strong><div class="muted" style="font-size:12px">${cust?escapeHtml(cust.name):''}</div></div>
+            <div>${fmtDate(r.dueDate)} ${rentalStatusBadge(r.status)}</div>
+          </div>`;
+        }).join('') : '<div class="muted">No active rentals.</div>'}
+      </div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:18px;">
+    <div class="panel-head"><h3>Low Stock Alerts</h3></div>
+    <div class="panel-body">
+      ${lowStock.length? `<div class="tag-strip">${lowStock.map(i=>`<span class="badge red">${escapeHtml(i.name)} — ${i.stock} left</span>`).join('')}</div>` : '<div class="muted">All stock levels look healthy.</div>'}
+    </div>
+  </div>
+  `;
+}
+
+/* ===================== UTIL ===================== */
+function escapeHtml(s){
+  if(s===undefined||s===null) return '';
+  return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(s){ return escapeHtml(s); }
+
+/* ===================== INIT ===================== */
+(async function init(){
+  DB = await loadDB();
+  render();
+})();
+</script>
+</body>
+</html>
